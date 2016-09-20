@@ -2,9 +2,7 @@ class Gather
   BASE_URL = 'https://www.reddit.com/r/'
   PAGE_LIMIT = 25
 
-  def initialize(subreddit:)
-    @subreddit = subredditi
-    @options   = {}
+  def initialize
   end
 
   def self.perform
@@ -16,16 +14,18 @@ class Gather
     parse_data
     create_thoughts
   rescue => e
-    binding.pry
     # figure out what to do here. It might not be needed not sure yet
+    # TO DO create/register Oauth reddit account for pulling in info. 
+    # checkout github reddit/reddit
   end
 
   private
   
-  attr_accessor :options, :thoughts, :parsed, :attributes
+  attr_accessor :options, :thoughts, :parsed
+  attr_reader :thought_attributes 
 
   def get_new_thoughts
-    @thoughts = HTTParty.get(BASE_URL + '/ShowerThoughts/new/.json', @options)
+    @thoughts = HTTParty.get(BASE_URL + '/ShowerThoughts/new/.json')
   end
 
   def parse_data
@@ -33,11 +33,11 @@ class Gather
 
     @thoughts['children'].each do |child|
       new_thought = Hash.new { |hash, key| hash[key] = nil }
-      new_thought[:title]       = child['data']['title']
-      new_thought[:text]        = child['data']['selftext']
-      new_thought[:url]         = child['data']['url']
-      new_thought[:subreddit]   = child['data']['subreddit']
-      new_thought[:external_id] = child['data']['id']
+      
+      @thought_attributes.each do |attr|
+        new_thought[attr] = child['data'][attr]
+      end
+
       @parsed << new_thought
     end
   end
@@ -46,5 +46,9 @@ class Gather
     @parsed.each do |thought_params|
       Thought.create!(thought_params)
     end
+  end
+
+  def thought_attributes
+    @thought_attributes ||= Thought.new.attributes.except('created_at', 'updated_at').keys
   end
 end
