@@ -1,13 +1,10 @@
 class Gather
-  include HTTParty
-
-  BASE_URi = 'https://www.reddit.com/r/'
+  BASE_URL = 'https://www.reddit.com/r/'
   PAGE_LIMIT = 25
 
-  def initialize(amount)
-    @amount = amount
-    @count = 0
-    @pages = 5
+  def initialize(subreddit:)
+    @subreddit = subredditi
+    @options   = {}
   end
 
   def self.perform
@@ -18,19 +15,17 @@ class Gather
     get_new_thoughts
     parse_data
     create_thoughts
-  rescue => e.message
+  rescue => e
+    binding.pry
     # figure out what to do here. It might not be needed not sure yet
   end
 
   private
   
-  attr_accessor :options, :thoughts, :count, :after, :parsed
+  attr_accessor :options, :thoughts, :parsed, :attributes
 
   def get_new_thoughts
-    @thoughts = self.class.get('/ShowerThoughts/new.json', options)
-    @count    = count + PAGE_LIMIT 
-    @after    = @thoughts['data']['after']
-    @options  = { count: @count, after: @after }   
+    @thoughts = HTTParty.get(BASE_URL + '/ShowerThoughts/new/.json', @options)
   end
 
   def parse_data
@@ -38,14 +33,13 @@ class Gather
 
     @thoughts['children'].each do |child|
       new_thought = Hash.new { |hash, key| hash[key] = nil }
-      new_thought[:title]     = child['data']['title']
-      new_thought[:text]      = child['data']['selftext']
-      new_thought[:url]       = child['data']['url']
-      new_thought[:subreddit] = child['data']['subreddit']
+      new_thought[:title]       = child['data']['title']
+      new_thought[:text]        = child['data']['selftext']
+      new_thought[:url]         = child['data']['url']
+      new_thought[:subreddit]   = child['data']['subreddit']
+      new_thought[:external_id] = child['data']['id']
       @parsed << new_thought
     end
-
-    @parsed
   end
 
   def create_thoughts
