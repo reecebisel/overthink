@@ -5,8 +5,11 @@ gem 'rails', '~> 5.0.0', '>= 5.0.0.1'
 gem 'pg', '~> 0.18'
 # Use Puma as the app server
 gem 'puma', '~> 3.0'
-gem 'httparty', '~> 0.14.0
-'
+gem 'httparty', '~> 0.14.0'
+gem 'dotenv-rails'
+# this is a wrapper for the reddit api. Still needs testing but looks more promising than the lease
+gem 'redd', '~> 0.7.10'
+
 group :production do 
   gem 'rails_12factor'
 end
